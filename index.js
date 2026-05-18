@@ -1,4 +1,5 @@
-import { BskyAgent } from '@atproto/api';
+import pkg from '@atproto/api';
+const { BskyAgent } = pkg;
 
 const username = process.env.BLUESKY_USERNAME;
 const password = process.env.BLUESKY_APP_PASSWORD;
