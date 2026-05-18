@@ -21,10 +21,10 @@ async function main() {
 
     const posts = data.feed;
 
-    // 2) Analyze posts (same logic as your web app)
+    // 2) Analyze posts
     const stats = analyze(posts);
 
-    // 3) Build final text for Bluesky
+    // 3) Build final text
     const text = generatePerfectSkyPostNow(stats);
 
     console.log('Post to publish:\n', text);
@@ -104,35 +104,19 @@ function analyze(posts) {
   };
 }
 
-// Build the final text exactly as we defined
 function generatePerfectSkyPostNow(s) {
   const lines = [];
 
-  // Title
   lines.push('PerfectSky Post Now');
-
-  // Always show characters + words
   lines.push(`• ${s.avgChars} characters`);
   lines.push(`• ${s.avgWords} words`);
 
-  // Media majority (>= 50%)
-  if (s.imagePct >= 50) {
-    lines.push('• Image: yes');
-  }
-  if (s.videoPct >= 50) {
-    lines.push('• Video: yes');
-  }
-  if (s.noMediaPct >= 50) {
-    lines.push('• No media');
-  }
-  if (s.linksPct >= 50) {
-    lines.push('• Links: yes');
-  }
-  if (parseFloat(s.avgHashtags) >= 0.5) {
-    lines.push('• Hashtags: yes');
-  }
+  if (s.imagePct >= 50) lines.push('• Image: yes');
+  if (s.videoPct >= 50) lines.push('• Video: yes');
+  if (s.noMediaPct >= 50) lines.push('• No media');
+  if (s.linksPct >= 50) lines.push('• Links: yes');
+  if (parseFloat(s.avgHashtags) >= 0.5) lines.push('• Hashtags: yes');
 
-  // Dominant post type: replies / originals / quotes
   const types = [
     { label: 'Reply post', value: s.repliesPct },
     { label: 'Original post', value: s.originalsPct },
@@ -155,4 +139,17 @@ async function postToBluesky(text) {
     throw new Error('Missing BSKY_HANDLE or BSKY_APP_PASSWORD environment variables.');
   }
 
-  const agent = new BskyAgent({ service: 'https
+  const agent = new BskyAgent({ service: 'https://bsky.social' });
+
+  await agent.login({
+    identifier: handle,
+    password: appPassword,
+  });
+
+  await agent.post({
+    text,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+main();
