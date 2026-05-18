@@ -1,15 +1,13 @@
-name: PerfectSky Post Bot
+name: PerfectSky Post Now Bot
 
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 9 * * *"  # cada día a las 09:00 UTC (ajusta si quieres)
   workflow_dispatch:
 
 jobs:
-  run-bot:
+  post:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout repo
@@ -18,13 +16,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: "20"
 
       - name: Install dependencies
         run: npm install
 
       - name: Run bot
         env:
-          BLUESKY_USERNAME: ${{ secrets.BLUESKY_USERNAME }}
-          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
-        run: node index.js
+          BSKY_HANDLE: ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+        run: npm start
