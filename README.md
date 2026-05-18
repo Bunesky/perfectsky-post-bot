@@ -1,7 +1,7 @@
 # PerfectSky Post Bot
-> Autonomous Bluesky bot that posts the “PerfectSky Post Now” once per day.
 
-![Banner](banner.png)
+### Bot Account  
+https://bsky.app/profile/perfectskypost.bsky.social
 
 The PerfectSky Post Bot analyzes the posts from the Bluesky Trending feed and publishes:
 
@@ -11,14 +11,17 @@ The PerfectSky Post Bot analyzes the posts from the Bluesky Trending feed and pu
 
 Runs daily through GitHub Actions with no manual intervention.
 
-### Bot Account
-https://bsky.app/profile/perfectskypost.bsky.social
+### Feed Source  
+https://bsky.app/profile/did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaadxgnfze66k
 
-### Related Projects
+### Related Projects  
 • Web app (analytics): https://bunesky.github.io/perfectsky-post/  
 • Web app (analytics + result): https://bunesky.github.io/perfectsky-perfect-post/  
-• Bot repository: https://github.com/Bunesky/perfectsky-post-bot
+• Bot repository: https://github.com/Bunesky/perfectsky-post-bot  
 
-### Contact
+### Contact  
 https://bsky.app/profile/bune.bsky.social
 
+---
+
+![Banner](banner.png)
