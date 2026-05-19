@@ -115,7 +115,7 @@ function generatePerfectSkyPostNow(s) {
   if (s.videoPct >= 50) lines.push('• Video: yes');
   if (s.noMediaPct >= 50) lines.push('• No media');
   if (s.linksPct >= 50) lines.push('• Links: yes');
-  if (parseFloat(s.avgHashtags) >= 0.5) lines.push('• Hashtags: yes');
+  if (parseFloat(s.avgHashtags) >= 1) lines.push('• Hashtags: yes');
 
   const types = [
     { label: 'Reply post', value: s.repliesPct },
