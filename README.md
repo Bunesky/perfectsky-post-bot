@@ -10,10 +10,11 @@ The PerfectSky Post Bot analyzes the @bunesky Trending Feed and publishes:
 
 Runs daily through GitHub Actions with no manual intervention.
 
-### Related Projects — Bot Ecosystem
-• Analytics: https://bunesky.github.io/perfectsky-post/
-• Analytics + result: https://bunesky.github.io/perfectsky-perfect-post/
-• Feed debug tool: https://bunesky.github.io/perfectsky-feed-debug/
+### Related Projects — Bot Ecosystem  
+• Analytics: https://bunesky.github.io/perfectsky-post/  
+• Analytics + result: https://bunesky.github.io/perfectsky-perfect-post/  
+• Feed debug tool: https://bunesky.github.io/perfectsky-feed-debug/  
+
 
 ### Contact
 https://bsky.app/profile/bune.bsky.social
