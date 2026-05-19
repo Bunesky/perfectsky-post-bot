@@ -6,43 +6,31 @@ async function main() {
   try {
     console.log('PerfectSky Post Now bot starting...');
 
-    // 1) Fetch trending feed (REAL, EXACTO)
-    const skeletonURL =
-      'https://public.api.bsky.app/xrpc/app.bsky.feed.getFeedSkeleton?feed=' +
+    // 1) Fetch trending feed (API PUBLICA)
+    const feedURL =
+      'https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed?feed=' +
       encodeURIComponent('at://did:plc:jlyxq2frdkpnkwhzldvmjlrv/app.bsky.feed.generator/aaadxgnfze66k');
 
-    const skeletonRes = await fetch(skeletonURL);
-    if (!skeletonRes.ok) throw new Error('HTTP Error (skeleton) ' + skeletonRes.status);
+    const res = await fetch(feedURL);
+    if (!res.ok) throw new Error('HTTP Error ' + res.status);
 
-    const skeleton = await skeletonRes.json();
-    if (!skeleton.feed || skeleton.feed.length === 0) {
-      throw new Error('Skeleton feed returned empty');
+    const data = await res.json();
+    if (!data.feed || data.feed.length === 0) {
+      throw new Error('Feed returned empty');
     }
 
-    // Ahora skeleton.feed contiene SOLO URIs de posts reales
-    const uris = skeleton.feed.map(item => item.post.uri);
+    // IMPORTANTE: getFeed devuelve item.post YA COMPLETO
+    const posts = data.feed.map(item => item.post);
 
-    // 2) Fetch full posts
-    const postsURL = 'https://public.api.bsky.app/xrpc/app.bsky.feed.getPosts';
-    const postsRes = await fetch(postsURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uris })
-    });
-    if (!postsRes.ok) throw new Error('HTTP Error (posts) ' + postsRes.status);
-
-    const postsData = await postsRes.json();
-    const posts = postsData.posts;
-
-    // 3) Analyze posts
+    // 2) Analyze posts
     const stats = analyze(posts);
 
-    // 4) Build final text
+    // 3) Build final text
     const text = generatePerfectSkyPostNow(stats);
 
     console.log('Post to publish:\n', text);
 
-    // 5) Publish to Bluesky
+    // 4) Publish to Bluesky
     await postToBluesky(text);
 
     console.log('PerfectSky Post Now published successfully.');
@@ -67,8 +55,7 @@ function analyze(posts) {
   let quotes = 0;
 
   for (const post of posts) {
-    const record = post.record;
-    const text = record.text || '';
+    const text = post.record.text || '';
 
     totalChars += text.length;
 
