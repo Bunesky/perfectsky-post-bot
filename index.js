@@ -62,7 +62,7 @@ function analyze(posts) {
     const words = text.trim().split(/\s+/).filter(Boolean);
     totalWords += words.length;
 
-    const hashtags = text.match(/#\w+/g) || [];
+    const hashtags = text.match(/#[a-zA-Z][a-zA-Z0-9_]+/g) || [];
     totalHashtags += hashtags.length;
 
     const embedType = post.embed?.$type || '';
