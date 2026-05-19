@@ -107,29 +107,40 @@ function analyze(posts) {
 function generatePerfectSkyPostNow(s) {
   const lines = [];
 
-  lines.push('PerfectSky Post Now');
+  // Nuevo encabezado
+  lines.push('Current Trending Feed Pattern:');
   lines.push(`• ${s.avgChars} characters`);
   lines.push(`• ${s.avgWords} words`);
 
-  if (s.imagePct >= 50) lines.push('• Image: yes');
-  if (s.videoPct >= 50) lines.push('• Video: yes');
-  if (s.noMediaPct >= 50) lines.push('• No media');
-  if (s.linksPct >= 50) lines.push('• Links: yes');
-  if (parseFloat(s.avgHashtags) >= 1) lines.push('• Hashtags: yes');
+  // Mayorías (imagen, video, link, no media)
+  if (s.imagePct >= 50) lines.push('• Majority with images');
+  if (s.videoPct >= 50) lines.push('• Majority with videos');
+  if (s.linksPct >= 50) lines.push('• Majority with links');
+  if (s.noMediaPct >= 50) lines.push('• Majority without media');
 
+  // Hashtags solo si hay MUCHÍSIMOS
+  if (parseFloat(s.avgHashtags) >= 50) {
+    lines.push('• Heavy hashtag usage');
+  }
+
+  // Tipo de post dominante
   const types = [
-    { label: 'Reply post', value: s.repliesPct },
-    { label: 'Original post', value: s.originalsPct },
-    { label: 'Quote post', value: s.quotesPct },
+    { label: 'Reply', value: s.repliesPct },
+    { label: 'Quote', value: s.quotesPct },
+    { label: 'Original', value: s.originalsPct }
   ];
 
   types.sort((a, b) => b.value - a.value);
   const dominant = types[0];
 
-  lines.push(`• ${dominant.label}`);
+  // Solo mostrar si NO es original
+  if (dominant.label !== 'Original') {
+    lines.push(`• ${dominant.label}`);
+  }
 
   return lines.join('\n');
 }
+
 
 async function postToBluesky(text) {
   const handle = process.env.BSKY_HANDLE;
