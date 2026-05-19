@@ -2,34 +2,47 @@
 
 import { BskyAgent } from '@atproto/api';
 
-const API_URL =
-  'https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed?feed=' +
-  encodeURIComponent('at://did:plc:jlyxq2frdkpnkwhzldvmjlrv/app.bsky.feed.generator/aaadxgnfze66k');
-
 async function main() {
   try {
     console.log('PerfectSky Post Now bot starting...');
 
-    // 1) Fetch trending feed
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('HTTP Error ' + response.status);
+    // 1) Fetch trending feed (REAL, EXACTO)
+    const skeletonURL =
+      'https://public.api.bsky.app/xrpc/app.bsky.feed.getFeedSkeleton?feed=' +
+      encodeURIComponent('at://did:plc:jlyxq2frdkpnkwhzldvmjlrv/app.bsky.feed.generator/aaadxgnfze66k');
 
-    const data = await response.json();
-    if (!data.feed || data.feed.length === 0) {
-      throw new Error('Feed returned empty');
+    const skeletonRes = await fetch(skeletonURL);
+    if (!skeletonRes.ok) throw new Error('HTTP Error (skeleton) ' + skeletonRes.status);
+
+    const skeleton = await skeletonRes.json();
+    if (!skeleton.feed || skeleton.feed.length === 0) {
+      throw new Error('Skeleton feed returned empty');
     }
 
-    const posts = data.feed;
+    // Ahora skeleton.feed contiene SOLO URIs de posts reales
+    const uris = skeleton.feed.map(item => item.post.uri);
 
-    // 2) Analyze posts
+    // 2) Fetch full posts
+    const postsURL = 'https://public.api.bsky.app/xrpc/app.bsky.feed.getPosts';
+    const postsRes = await fetch(postsURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uris })
+    });
+    if (!postsRes.ok) throw new Error('HTTP Error (posts) ' + postsRes.status);
+
+    const postsData = await postsRes.json();
+    const posts = postsData.posts;
+
+    // 3) Analyze posts
     const stats = analyze(posts);
 
-    // 3) Build final text
+    // 4) Build final text
     const text = generatePerfectSkyPostNow(stats);
 
     console.log('Post to publish:\n', text);
 
-    // 4) Publish to Bluesky
+    // 5) Publish to Bluesky
     await postToBluesky(text);
 
     console.log('PerfectSky Post Now published successfully.');
@@ -53,9 +66,9 @@ function analyze(posts) {
   let originals = 0;
   let quotes = 0;
 
-  for (const item of posts) {
-    const post = item.post;
-    const text = post.record.text || '';
+  for (const post of posts) {
+    const record = post.record;
+    const text = record.text || '';
 
     totalChars += text.length;
 
@@ -78,7 +91,7 @@ function analyze(posts) {
 
     if (hasLink) withLinks++;
 
-    if (item.reply) {
+    if (post.reply) {
       replies++;
     } else if (embedType.includes('record')) {
       quotes++;
@@ -93,7 +106,7 @@ function analyze(posts) {
     total,
     avgChars: Math.round(totalChars / total),
     avgWords: Math.round(totalWords / total),
-    avgHashtags: (totalHashtags / total).toFixed(1),
+    avgHashtags: (totalHashtags / total).toFixed(2),
     imagePct: Math.round((withImage / total) * 100),
     videoPct: Math.round((withVideo / total) * 100),
     noMediaPct: Math.round((noMedia / total) * 100),
