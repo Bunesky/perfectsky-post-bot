@@ -10,8 +10,6 @@ The PerfectSky Post Bot analyzes the Trending Feed and publishes:
 
 Runs daily through GitHub Actions with no manual intervention.
 
-The bot uses the same feed analysis pipeline as the PerfectSky web apps, but publishes simplified pattern summaries optimized for daily posting.
-
 ### Related Projects — Bot Ecosystem  
 • Analytics: https://bunesky.github.io/perfectsky-post/  
 • Analytics + result: https://bunesky.github.io/perfectsky-perfect-post/  
