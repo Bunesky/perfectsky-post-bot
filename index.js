@@ -119,7 +119,7 @@ function generatePerfectSkyPostNow(s) {
   if (s.noMediaPct >= 50) lines.push('• Majority without media');
 
   // Hashtags solo si hay MUCHÍSIMOS
-  if (parseFloat(s.avgHashtags) >= 50) {
+  if (parseFloat(s.avgHashtags) >= 1) {
     lines.push('• Heavy hashtag usage');
   }
 
