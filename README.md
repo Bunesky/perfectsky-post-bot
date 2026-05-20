@@ -2,7 +2,7 @@
 Bot Account  
 https://bsky.app/profile/perfectskypost.bsky.social
 
-The PerfectSky Post Bot analyzes the @bunesky Trending Feed and publishes:
+The PerfectSky Post Bot analyzes the Trending Feed and publishes:
 
 - Character and word averages  
 - Majority media type  
