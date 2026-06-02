@@ -1,9 +1,9 @@
-import { BskyAgent } from "@atproto/api";
-import fs from "fs";
+const fs = require("fs");
+const { BskyAgent } = require("@atproto/api");
 
 async function run() {
   try {
-    console.log("🚀 SnakeSky updater START");
+    console.log("🚀 SnakeSky START");
 
     const agent = new BskyAgent({
       service: "https://bsky.social"
@@ -14,7 +14,6 @@ async function run() {
       password: process.env.SNAKESKY_PASSWORD
     });
 
-    // 🔴 TU FEED GENERATOR
     const feedUri =
       "at://did:plc:jlyxq2frdkpnkwhzldvmjlrv/app.bsky.feed.generator/aaaim53uagg4q";
 
@@ -23,21 +22,21 @@ async function run() {
       limit: 10
     });
 
-    const items = res?.data?.feed ?? [];
+    const items = res?.data?.feed;
 
     if (!Array.isArray(items) || items.length === 0) {
       console.log("⚠️ Feed vacío");
       return;
     }
 
-    const post = items[0]?.post;
+    const post = items[0].post;
+    const text = post?.record?.text;
 
-    if (!post?.record?.text) {
+    if (!text) {
       console.log("⚠️ Post sin texto");
       return;
     }
 
-    const text = post.record.text;
     console.log("📝 POST:", text);
 
     const match = text.match(/LENGTH\s*[:=]?\s*(\d+)/i);
@@ -61,10 +60,7 @@ async function run() {
       updatedAt: new Date().toISOString()
     };
 
-    fs.writeFileSync(
-      "snakesky.json",
-      JSON.stringify(data, null, 2)
-    );
+    fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
 
     console.log("🟩 SUCCESS:", data);
 
