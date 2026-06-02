@@ -3,6 +3,8 @@ import fs from "fs";
 
 async function run() {
   try {
+    console.log("🚀 Starting SnakeSky updater...");
+
     const agent = new BskyAgent({
       service: "https://bsky.social"
     });
@@ -12,6 +14,8 @@ async function run() {
       password: process.env.SNAKESKY_PASSWORD
     });
 
+    console.log("✅ Logged in");
+
     const snakeskyFeed =
       "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
 
@@ -20,28 +24,30 @@ async function run() {
       limit: 10
     });
 
-    const items = res.data.feed || [];
+    const items = res?.data?.feed ?? [];
 
-    if (!items.length) {
-      console.log("No hay posts en el feed #snakesky.");
+    if (!Array.isArray(items) || items.length === 0) {
+      console.log("⚠️ No posts found in feed");
       return;
     }
 
-    // ordenar por fecha por seguridad
-    const sorted = items.sort((a, b) => {
-      return new Date(b.post.indexedAt || 0) - new Date(a.post.indexedAt || 0);
-    });
+    const post = items[0]?.post;
 
-    const post = sorted[0].post;
-    const text = post.record?.text || "";
+    if (!post) {
+      console.log("⚠️ No valid post object");
+      return;
+    }
 
-    // 🔥 FIX IMPORTANTE: acepta : o =
+    const text = post.record?.text ?? "";
+
+    console.log("📝 Post text:", text);
+
     const match = text.match(
       /(?:Snake\s*length|LENGTH)\s*[:=]?\s*(\d+)/i
     );
 
     if (!match) {
-      console.log("El post no contiene LENGTH válido:", text);
+      console.log("⚠️ No LENGTH found in post");
       return;
     }
 
@@ -65,10 +71,11 @@ async function run() {
       JSON.stringify(data, null, 2)
     );
 
-    console.log("🟩 snakesky.json actualizado:", data);
+    console.log("🟩 SUCCESS:", data);
 
   } catch (err) {
-    console.error("❌ ERROR EN WORKFLOW:", err);
+    console.error("❌ WORKFLOW ERROR:");
+    console.error(err);
     process.exit(1);
   }
 }
