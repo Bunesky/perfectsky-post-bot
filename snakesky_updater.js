@@ -2,9 +2,8 @@ const fs = require("fs");
 
 async function run() {
   try {
-    console.log("🚀 SnakeSky feed reader (GENERATOR MODE)");
+    console.log("🚀 SnakeSky feed reader (CLEAN MODE)");
 
-    // 🟩 TU FEED GENERATOR REAL
     const feedUrl =
       "https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed" +
       "?feed=did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q&limit=10";
@@ -19,13 +18,11 @@ async function run() {
       return;
     }
 
-    // 🟩 último post del feed
     const post = items[0].post;
     const text = post?.record?.text || "";
 
     console.log("📝 POST:", text);
 
-    // 🟩 parse LENGTH=7
     const match = text.match(/LENGTH\s*[:=]?\s*(\d+)/i);
 
     if (!match) {
