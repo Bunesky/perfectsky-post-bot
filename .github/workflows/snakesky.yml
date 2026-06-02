@@ -1,36 +1,67 @@
-name: Update SnakeSky
+import { BskyAgent } from "@atproto/api";
+import fs from "fs";
 
-on:
-  schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch:
+async function run() {
+  try {
+    const agent = new BskyAgent({ service: "https://bsky.social" });
 
-jobs:
-  update:
-    runs-on: ubuntu-latest
+    await agent.login({
+      identifier: process.env.BSKY_USERNAME,
+      password: process.env.BSKY_PASSWORD
+    });
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    const snakeskyFeed =
+      "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+    const res = await agent.app.bsky.feed.getFeed({
+      feed: snakeskyFeed,
+      limit: 10
+    });
 
-      - name: Install dependencies
-        run: npm install
+    const items = res.data.feed || [];
 
-      - name: Run SnakeSky updater
-        run: node snakesky_updater.js
-        env:
-          BSKY_USERNAME: ${{ secrets.SNAKESKY_USERNAME }}
-          BSKY_PASSWORD: ${{ secrets.SNAKESKY_PASSWORD }}
+    if (!items.length) {
+      console.log("No hay posts en el feed #snakesky.");
+      return;
+    }
 
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "PerfectSky Bot"
-          git config --global user.email "bot@example.com"
-          git add snakesky.json
-          git commit -m "Update SnakeSky state" || echo "No changes to commit"
-          git push
+    const item = items[0];
+    const post = item.post;
+    const text = post.record?.text || "";
+
+    const match = text.match(
+      /(?:Snake\s*length|LENGTH)\s*:\s*(\d+)/i
+    );
+
+    if (!match) {
+      console.log("El post no contiene LENGTH.");
+      return;
+    }
+
+    const length = parseInt(match[1], 10);
+
+    const uri = post.uri;
+    const rkey = uri.split("/").pop();
+
+    const postUrl = `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
+
+    const data = {
+      length,
+      player: post.author.handle,
+      post: postUrl,
+      updatedAt: new Date().toISOString()
+    };
+
+    fs.writeFileSync(
+      "snakesky.json",
+      JSON.stringify(data, null, 2)
+    );
+
+    console.log("🟩 snakesky.json actualizado:", data);
+  } catch (err) {
+    console.error("❌ ERROR EN WORKFLOW:", err);
+    process.exit(1);
+  }
+}
+
+run();
