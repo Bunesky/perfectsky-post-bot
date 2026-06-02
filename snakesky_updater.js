@@ -9,26 +9,31 @@ async function run() {
     password: process.env.BSKY_PASSWORD
   });
 
-  const snakeskyFeed = "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
+  const snakeskyFeed =
+    "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
 
   const res = await agent.app.bsky.feed.getFeed({
     feed: snakeskyFeed,
-    limit: 1
+    limit: 10
   });
 
-  if (!res.data.feed.length) {
+  const items = res.data.feed || [];
+
+  if (!items.length) {
     console.log("No hay posts en el feed #snakesky.");
     return;
   }
 
-  const item = res.data.feed[0];
+  const item = items[0];
   const post = item.post;
-  const text = post.record.text || "";
+  const text = post.record?.text || "";
 
-  const match = text.match(/LENGTH\s*=\s*(\d+)/i);
+  const match = text.match(
+    /(?:Snake\s*length|LENGTH)\s*:\s*(\d+)/i
+  );
 
   if (!match) {
-    console.log("El último post #snakesky no contiene LENGTH=XX.");
+    console.log("El post no contiene LENGTH.");
     return;
   }
 
@@ -36,7 +41,8 @@ async function run() {
 
   const uri = post.uri;
   const rkey = uri.split("/").pop();
-  const postUrl = `https://bsky.app/profile/${post.author.did}/post/${rkey}`;
+
+  const postUrl = `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
 
   const data = {
     length,
@@ -46,6 +52,7 @@ async function run() {
   };
 
   fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
+
   console.log("🟩 snakesky.json actualizado:", data);
 }
 
