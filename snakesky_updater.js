@@ -9,27 +9,25 @@ async function run() {
     password: process.env.BSKY_PASSWORD
   });
 
-  // FEED EXACTO QUE ME DISTE
-  const snakeskyFeed = "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
-
-  const res = await agent.app.bsky.feed.getFeed({
-    feed: snakeskyFeed,
+  // Buscar posts con el hashtag #snakesky
+  const res = await agent.app.bsky.feed.searchPosts({
+    q: "#snakesky",
+    sort: "latest",
     limit: 1
   });
 
-  if (!res.data.feed.length) {
-    console.log("No hay posts en el feed SnakeSky.");
+  if (!res.data.posts.length) {
+    console.log("No hay posts con #snakesky.");
     return;
   }
 
-  const item = res.data.feed[0];
-  const post = item.post;
+  const post = res.data.posts[0];
   const text = post.record.text || "";
 
   const match = text.match(/LENGTH\s*=\s*(\d+)/i);
 
   if (!match) {
-    console.log("El último post no contiene LENGTH=XX.");
+    console.log("El último post con #snakesky no contiene LENGTH=XX.");
     return;
   }
 
