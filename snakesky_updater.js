@@ -14,7 +14,7 @@ async function run() {
       password: process.env.SNAKESKY_PASSWORD
     });
 
-    // 🔴 IMPORTANTE: feed generator AT URI (NO URL web)
+    // 🔴 TU FEED GENERATOR
     const feedUri =
       "at://did:plc:jlyxq2frdkpnkwhzldvmjlrv/app.bsky.feed.generator/aaaim53uagg4q";
 
@@ -25,12 +25,13 @@ async function run() {
 
     const items = res?.data?.feed ?? [];
 
-    if (!items.length) {
+    if (!Array.isArray(items) || items.length === 0) {
       console.log("⚠️ Feed vacío");
       return;
     }
 
     const post = items[0]?.post;
+
     if (!post?.record?.text) {
       console.log("⚠️ Post sin texto");
       return;
@@ -39,7 +40,6 @@ async function run() {
     const text = post.record.text;
     console.log("📝 POST:", text);
 
-    // 🔥 SOLO ESTE FORMATO
     const match = text.match(/LENGTH\s*[:=]?\s*(\d+)/i);
 
     if (!match) {
@@ -50,7 +50,9 @@ async function run() {
     const length = parseInt(match[1], 10);
 
     const rkey = post.uri.split("/").pop();
-    const postUrl = `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
+
+    const postUrl =
+      `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
 
     const data = {
       length,
@@ -59,11 +61,16 @@ async function run() {
       updatedAt: new Date().toISOString()
     };
 
-    fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
+    fs.writeFileSync(
+      "snakesky.json",
+      JSON.stringify(data, null, 2)
+    );
 
-    console.log("🟩 UPDATED:", data);
+    console.log("🟩 SUCCESS:", data);
+
   } catch (err) {
-    console.error("❌ ERROR:", err);
+    console.error("❌ ERROR COMPLETO:");
+    console.error(err);
     process.exit(1);
   }
 }
