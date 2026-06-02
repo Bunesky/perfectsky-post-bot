@@ -8,8 +8,8 @@ async function run() {
     });
 
     await agent.login({
-      identifier: process.env.BSKY_USERNAME,
-      password: process.env.BSKY_PASSWORD
+      identifier: process.env.SNAKESKY_USERNAME,
+      password: process.env.SNAKESKY_PASSWORD
     });
 
     const snakeskyFeed =
@@ -27,15 +27,21 @@ async function run() {
       return;
     }
 
-    const post = items[0].post;
+    // ordenar por fecha por seguridad
+    const sorted = items.sort((a, b) => {
+      return new Date(b.post.indexedAt || 0) - new Date(a.post.indexedAt || 0);
+    });
+
+    const post = sorted[0].post;
     const text = post.record?.text || "";
 
+    // 🔥 FIX IMPORTANTE: acepta : o =
     const match = text.match(
-      /(?:Snake\s*length|LENGTH)\s*:\s*(\d+)/i
+      /(?:Snake\s*length|LENGTH)\s*[:=]?\s*(\d+)/i
     );
 
     if (!match) {
-      console.log("El post no contiene LENGTH.");
+      console.log("El post no contiene LENGTH válido:", text);
       return;
     }
 
@@ -60,8 +66,9 @@ async function run() {
     );
 
     console.log("🟩 snakesky.json actualizado:", data);
+
   } catch (err) {
-    console.error("❌ ERROR:", err);
+    console.error("❌ ERROR EN WORKFLOW:", err);
     process.exit(1);
   }
 }
