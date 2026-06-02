@@ -1,10 +1,11 @@
-import fs from "fs";
+const fs = require("fs");
 
 async function run() {
   try {
-    console.log("🚀 SnakeSky updater (simple mode)");
+    console.log("🚀 SnakeSky updater (stable mode)");
 
-    const feedId = "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
+    const feedId =
+      "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
 
     const url =
       "https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed" +
@@ -20,13 +21,11 @@ async function run() {
       return;
     }
 
-    // último post
     const post = items[0].post;
     const text = post?.record?.text || "";
 
     console.log("📝 Post:", text);
 
-    // acepta LENGTH=7 o LENGTH:7
     const match = text.match(/LENGTH\s*[:=]?\s*(\d+)/i);
 
     if (!match) {
@@ -48,12 +47,16 @@ async function run() {
       updatedAt: new Date().toISOString()
     };
 
-    fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
+    fs.writeFileSync(
+      "snakesky.json",
+      JSON.stringify(data, null, 2)
+    );
 
-    console.log("🟩 UPDATED:", data);
+    console.log("🟩 SUCCESS:", data);
 
   } catch (err) {
-    console.error("❌ ERROR:", err);
+    console.error("❌ ERROR:");
+    console.error(err);
     process.exit(1);
   }
 }
