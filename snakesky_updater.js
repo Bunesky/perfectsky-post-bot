@@ -14,6 +14,7 @@ async function run() {
       password: process.env.SNAKESKY_PASSWORD
     });
 
+    // 🔴 FEED GENERATOR (FORMATO CORRECTO)
     const feedUri =
       "at://did:plc:jlyxq2frdkpnkwhzldvmjlrv/app.bsky.feed.generator/aaaim53uagg4q";
 
@@ -25,12 +26,19 @@ async function run() {
     const items = res?.data?.feed;
 
     if (!Array.isArray(items) || items.length === 0) {
-      console.log("⚠️ Feed vacío");
+      console.log("⚠️ Feed vacío o inválido");
       return;
     }
 
-    const post = items[0].post;
-    const text = post?.record?.text;
+    // 🟢 SOLO EL ÚLTIMO POST
+    const post = items[0]?.post;
+
+    if (!post) {
+      console.log("⚠️ Post no existe");
+      return;
+    }
+
+    const text = post.record?.text;
 
     if (!text) {
       console.log("⚠️ Post sin texto");
@@ -39,10 +47,11 @@ async function run() {
 
     console.log("📝 POST:", text);
 
-    const match = text.match(/LENGTH\s*[:=]?\s*(\d+)/i);
+    // 🟢 EXTRAER NÚMERO (tu formato real)
+    const match = text.match(/(\d+)/);
 
     if (!match) {
-      console.log("⚠️ No LENGTH encontrado");
+      console.log("⚠️ No se encontró número en el post");
       return;
     }
 
@@ -68,7 +77,7 @@ async function run() {
     console.log("🟩 SUCCESS:", data);
 
   } catch (err) {
-    console.error("❌ ERROR COMPLETO:");
+    console.error("❌ ERROR REAL:");
     console.error(err);
     process.exit(1);
   }
