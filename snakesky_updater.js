@@ -1,60 +1,42 @@
-import { BskyAgent } from "@atproto/api";
 import fs from "fs";
 
 async function run() {
   try {
-    console.log("🚀 Starting SnakeSky updater...");
+    console.log("🚀 SnakeSky updater (simple mode)");
 
-    const agent = new BskyAgent({
-      service: "https://bsky.social"
-    });
+    const feedId = "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
 
-    await agent.login({
-      identifier: process.env.SNAKESKY_USERNAME,
-      password: process.env.SNAKESKY_PASSWORD
-    });
+    const url =
+      "https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed" +
+      `?feed=${encodeURIComponent(feedId)}&limit=10`;
 
-    console.log("✅ Logged in");
+    const res = await fetch(url);
+    const data = await res.json();
 
-    const snakeskyFeed =
-      "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
+    const items = data?.feed || [];
 
-    const res = await agent.app.bsky.feed.getFeed({
-      feed: snakeskyFeed,
-      limit: 10
-    });
-
-    const items = res?.data?.feed ?? [];
-
-    if (!Array.isArray(items) || items.length === 0) {
-      console.log("⚠️ No posts found in feed");
+    if (!items.length) {
+      console.log("⚠️ No posts found");
       return;
     }
 
-    const post = items[0]?.post;
+    // último post
+    const post = items[0].post;
+    const text = post?.record?.text || "";
 
-    if (!post) {
-      console.log("⚠️ No valid post object");
-      return;
-    }
+    console.log("📝 Post:", text);
 
-    const text = post.record?.text ?? "";
-
-    console.log("📝 Post text:", text);
-
-    const match = text.match(
-      /(?:Snake\s*length|LENGTH)\s*[:=]?\s*(\d+)/i
-    );
+    // acepta LENGTH=7 o LENGTH:7
+    const match = text.match(/LENGTH\s*[:=]?\s*(\d+)/i);
 
     if (!match) {
-      console.log("⚠️ No LENGTH found in post");
+      console.log("⚠️ No LENGTH found");
       return;
     }
 
     const length = parseInt(match[1], 10);
 
-    const uri = post.uri;
-    const rkey = uri.split("/").pop();
+    const rkey = post.uri.split("/").pop();
 
     const postUrl =
       `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
@@ -66,16 +48,12 @@ async function run() {
       updatedAt: new Date().toISOString()
     };
 
-    fs.writeFileSync(
-      "snakesky.json",
-      JSON.stringify(data, null, 2)
-    );
+    fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
 
-    console.log("🟩 SUCCESS:", data);
+    console.log("🟩 UPDATED:", data);
 
   } catch (err) {
-    console.error("❌ WORKFLOW ERROR:");
-    console.error(err);
+    console.error("❌ ERROR:", err);
     process.exit(1);
   }
 }
