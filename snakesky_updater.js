@@ -1,9 +1,9 @@
-const fs = require("fs");
-const { BskyAgent } = require("@atproto/api");
+import { BskyAgent } from "@atproto/api";
+import fs from "fs";
 
 async function run() {
   try {
-    console.log("🚀 SnakeSky START");
+    console.log("🚀 SnakeSky updater START");
 
     const agent = new BskyAgent({
       service: "https://bsky.social"
@@ -14,7 +14,7 @@ async function run() {
       password: process.env.SNAKESKY_PASSWORD
     });
 
-    // 🔴 FEED GENERATOR (FORMATO CORRECTO)
+    // 🔴 TU FEED GENERATOR
     const feedUri =
       "at://did:plc:jlyxq2frdkpnkwhzldvmjlrv/app.bsky.feed.generator/aaaim53uagg4q";
 
@@ -23,35 +23,35 @@ async function run() {
       limit: 10
     });
 
-    const items = res?.data?.feed;
+    const items = res?.data?.feed ?? [];
 
-    if (!Array.isArray(items) || items.length === 0) {
-      console.log("⚠️ Feed vacío o inválido");
+    if (items.length === 0) {
+      console.log("⚠️ Feed vacío");
       return;
     }
 
-    // 🟢 SOLO EL ÚLTIMO POST
-    const post = items[0]?.post;
+    // 🟢 ordenar por fecha REAL (esto es clave)
+    const sorted = items.sort(
+      (a, b) =>
+        new Date(b.post.indexedAt || 0) -
+        new Date(a.post.indexedAt || 0)
+    );
 
-    if (!post) {
-      console.log("⚠️ Post no existe");
+    const post = sorted[0]?.post;
+
+    if (!post?.record?.text) {
+      console.log("⚠️ Post sin texto válido");
       return;
     }
 
-    const text = post.record?.text;
-
-    if (!text) {
-      console.log("⚠️ Post sin texto");
-      return;
-    }
-
+    const text = post.record.text;
     console.log("📝 POST:", text);
 
-    // 🟢 EXTRAER NÚMERO (tu formato real)
+    // 🟢 tu formato: cualquier número sirve
     const match = text.match(/(\d+)/);
 
     if (!match) {
-      console.log("⚠️ No se encontró número en el post");
+      console.log("⚠️ No se encontró número");
       return;
     }
 
@@ -69,16 +69,12 @@ async function run() {
       updatedAt: new Date().toISOString()
     };
 
-    fs.writeFileSync(
-      "snakesky.json",
-      JSON.stringify(data, null, 2)
-    );
+    fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
 
     console.log("🟩 SUCCESS:", data);
 
   } catch (err) {
-    console.error("❌ ERROR REAL:");
-    console.error(err);
+    console.error("❌ ERROR:", err);
     process.exit(1);
   }
 }
