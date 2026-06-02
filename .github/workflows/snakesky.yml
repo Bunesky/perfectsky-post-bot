@@ -1,48 +1,36 @@
-import { BskyAgent } from "@atproto/api";
-import fs from "fs";
+name: Update SnakeSky
 
-async function run() {
-  const agent = new BskyAgent({ service: "https://bsky.social" });
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # cada 5 minutos
+  workflow_dispatch:
 
-  await agent.login({
-    identifier: process.env.BSKY_USERNAME,
-    password: process.env.BSKY_PASSWORD
-  });
+jobs:
+  update:
+    runs-on: ubuntu-latest
 
-  // 🟩 SIEMPRE LEE EL ÚLTIMO POST DEL BOT
-  const feed = await agent.app.bsky.feed.getAuthorFeed({
-    actor: process.env.BSKY_USERNAME,
-    limit: 1
-  });
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-  if (!feed.data.feed.length) {
-    console.log("No hay posts en el feed del bot.");
-    return;
-  }
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-  const post = feed.data.feed[0].post;
-  const text = post.record.text || "";
-  const uri = post.uri;
+      - name: Install dependencies
+        run: npm install
 
-  // 🟦 EXTRAER LA LONGITUD
-  const match = text.match(/(?:Snake\s+length|LENGTH):\s*(\d+)/i);
+      - name: Run SnakeSky updater
+        run: node snakesky_updater.js
+        env:
+          BSKY_USERNAME: ${{ secrets.BSKY_USERNAME }}
+          BSKY_PASSWORD: ${{ secrets.BSKY_PASSWORD }}
 
-  if (!match) {
-    console.log("El último post no contiene longitud.");
-    return;
-  }
-
-  const length = parseInt(match[1], 10);
-
-  // 🟩 GUARDAR EN JSON
-  const data = {
-    length,
-    player: process.env.BSKY_USERNAME,
-    post: `https://bsky.app/profile/${process.env.BSKY_USERNAME}/post/${uri.split("/").pop()}`
-  };
-
-  fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
-  console.log("snakesky.json actualizado:", data);
-}
-
-run();
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "PerfectSky Bot"
+          git config --global user.email "bot@example.com"
+          git add snakesky.json
+          git commit -m "Update SnakeSky state" || echo "No changes to commit"
+          git push
