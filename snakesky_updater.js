@@ -60,7 +60,10 @@ async function run() {
       updatedAt: new Date().toISOString()
     };
 
-    fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
+    fs.writeFileSync(
+      "snakesky.json",
+      JSON.stringify(data, null, 2)
+    );
 
     console.log("🟩 SUCCESS:", data);
 
