@@ -2,7 +2,7 @@ const fs = require("fs");
 
 async function run() {
   try {
-    console.log("🚀 SnakeSky feed reader (CLEAN MODE)");
+    console.log("🚀 SnakeSky updater (FINAL FIX)");
 
     const feedUrl =
       "https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed" +
@@ -13,7 +13,7 @@ async function run() {
 
     const items = data?.feed || [];
 
-    if (!items.length) {
+    if (!Array.isArray(items) || items.length === 0) {
       console.log("⚠️ Feed vacío");
       return;
     }
@@ -37,7 +37,7 @@ async function run() {
     const postUrl =
       `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
 
-    const data = {
+    const dataOut = {
       length,
       player: post.author.handle,
       post: postUrl,
@@ -46,13 +46,13 @@ async function run() {
 
     fs.writeFileSync(
       "snakesky.json",
-      JSON.stringify(data, null, 2)
+      JSON.stringify(dataOut, null, 2)
     );
 
-    console.log("🟩 SUCCESS:", data);
+    console.log("🟩 SUCCESS:", dataOut);
 
   } catch (err) {
-    console.error("❌ ERROR:");
+    console.error("❌ ERROR COMPLETO:");
     console.error(err);
     process.exit(1);
   }
