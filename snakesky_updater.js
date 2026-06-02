@@ -2,34 +2,34 @@ const fs = require("fs");
 
 async function run() {
   try {
-    console.log("🚀 SnakeSky updater (stable mode)");
+    console.log("🚀 SnakeSky feed reader (GENERATOR MODE)");
 
-    const feedId =
-      "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
-
-    const url =
+    // 🟩 TU FEED GENERATOR REAL
+    const feedUrl =
       "https://public.api.bsky.app/xrpc/app.bsky.feed.getFeed" +
-      `?feed=${encodeURIComponent(feedId)}&limit=10`;
+      "?feed=did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q&limit=10";
 
-    const res = await fetch(url);
+    const res = await fetch(feedUrl);
     const data = await res.json();
 
     const items = data?.feed || [];
 
     if (!items.length) {
-      console.log("⚠️ No posts found");
+      console.log("⚠️ Feed vacío");
       return;
     }
 
+    // 🟩 último post del feed
     const post = items[0].post;
     const text = post?.record?.text || "";
 
-    console.log("📝 Post:", text);
+    console.log("📝 POST:", text);
 
+    // 🟩 parse LENGTH=7
     const match = text.match(/LENGTH\s*[:=]?\s*(\d+)/i);
 
     if (!match) {
-      console.log("⚠️ No LENGTH found");
+      console.log("⚠️ No LENGTH encontrado");
       return;
     }
 
