@@ -2,7 +2,7 @@ name: Update SnakeSky
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # cada 5 minutos
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -24,8 +24,8 @@ jobs:
       - name: Run SnakeSky updater
         run: node snakesky_updater.js
         env:
-          BSKY_USERNAME: ${{ secrets.BSKY_USERNAME }}
-          BSKY_PASSWORD: ${{ secrets.BSKY_PASSWORD }}
+          BSKY_USERNAME: ${{ secrets.SNAKESKY_USERNAME }}
+          BSKY_PASSWORD: ${{ secrets.SNAKESKY_PASSWORD }}
 
       - name: Commit and push changes
         run: |
