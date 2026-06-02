@@ -3,7 +3,9 @@ import fs from "fs";
 
 async function run() {
   try {
-    const agent = new BskyAgent({ service: "https://bsky.social" });
+    const agent = new BskyAgent({
+      service: "https://bsky.social"
+    });
 
     await agent.login({
       identifier: process.env.BSKY_USERNAME,
@@ -25,8 +27,7 @@ async function run() {
       return;
     }
 
-    const item = items[0];
-    const post = item.post;
+    const post = items[0].post;
     const text = post.record?.text || "";
 
     const match = text.match(
@@ -43,7 +44,8 @@ async function run() {
     const uri = post.uri;
     const rkey = uri.split("/").pop();
 
-    const postUrl = `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
+    const postUrl =
+      `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
 
     const data = {
       length,
@@ -59,7 +61,7 @@ async function run() {
 
     console.log("🟩 snakesky.json actualizado:", data);
   } catch (err) {
-    console.error("❌ ERROR EN WORKFLOW:", err);
+    console.error("❌ ERROR:", err);
     process.exit(1);
   }
 }
