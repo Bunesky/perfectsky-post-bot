@@ -1,90 +1,53 @@
-import fs from "fs";
 import { BskyAgent } from "@atproto/api";
+import fs from "fs";
 
 async function run() {
-  try {
-    console.log("🚀 SnakeSky START");
+  const agent = new BskyAgent({ service: "https://bsky.social" });
 
-    // Cliente Bluesky
-    const agent = new BskyAgent({
-      service: "https://bsky.social"
-    });
+  await agent.login({
+    identifier: process.env.BSKY_USERNAME,
+    password: process.env.BSKY_PASSWORD
+  });
 
-    // Login con secretos del repo
-    await agent.login({
-      identifier: process.env.SNAKESKY_USERNAME,
-      password: process.env.SNAKESKY_PASSWORD
-    });
+  // FEED EXACTO QUE ME DISTE
+  const snakeskyFeed = "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
 
-    // 🔴 TU FEED GENERATOR (SnakeSky)
-    const feedUri =
-      "at://did:plc:jlyxq2frdkpnkwhzldvmjlrv/app.bsky.feed.generator/aaaim53uagg4q";
+  const res = await agent.app.bsky.feed.getFeed({
+    feed: snakeskyFeed,
+    limit: 1
+  });
 
-    // Leer feed
-    const res = await agent.app.bsky.feed.getFeed({
-      feed: feedUri,
-      limit: 10
-    });
-
-    const items = res?.data?.feed ?? [];
-
-    if (!items.length) {
-      console.log("⚠️ Feed vacío");
-      return;
-    }
-
-    // Ordenar por fecha (último real primero)
-    const sorted = items.sort(
-      (a, b) =>
-        new Date(b.post.indexedAt || 0) -
-        new Date(a.post.indexedAt || 0)
-    );
-
-    const post = sorted[0]?.post;
-
-    if (!post?.record?.text) {
-      console.log("⚠️ Post sin texto");
-      return;
-    }
-
-    const text = post.record.text;
-
-    console.log("📝 POST:", text);
-
-    // Extraer número (LENGTH=7, LENGTH:7, etc)
-    const match = text.match(/(\d+)/);
-
-    if (!match) {
-      console.log("⚠️ No se encontró número en el post");
-      return;
-    }
-
-    const length = parseInt(match[1], 10);
-
-    const rkey = post.uri.split("/").pop();
-
-    const postUrl =
-      `https://bsky.app/profile/${post.author.handle}/post/${rkey}`;
-
-    // JSON que usa el juego
-    const data = {
-      length,
-      player: post.author.handle,
-      post: postUrl,
-      updatedAt: new Date().toISOString()
-    };
-
-    fs.writeFileSync(
-      "snakesky.json",
-      JSON.stringify(data, null, 2)
-    );
-
-    console.log("🟩 SUCCESS:", data);
-
-  } catch (err) {
-    console.error("❌ ERROR:", err);
-    process.exit(1);
+  if (!res.data.feed.length) {
+    console.log("No hay posts en el feed SnakeSky.");
+    return;
   }
+
+  const item = res.data.feed[0];
+  const post = item.post;
+  const text = post.record.text || "";
+
+  const match = text.match(/LENGTH\s*=\s*(\d+)/i);
+
+  if (!match) {
+    console.log("El último post no contiene LENGTH=XX.");
+    return;
+  }
+
+  const length = parseInt(match[1], 10);
+
+  const uri = post.uri;
+  const rkey = uri.split("/").pop();
+  const postUrl = `https://bsky.app/profile/${post.author.did}/post/${rkey}`;
+
+  const data = {
+    length,
+    player: post.author.handle,
+    post: postUrl,
+    updatedAt: new Date().toISOString()
+  };
+
+  fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
+  console.log("🟩 snakesky.json actualizado:", data);
 }
 
 run();
