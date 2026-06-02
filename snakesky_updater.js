@@ -9,40 +9,49 @@ async function run() {
     password: process.env.BSKY_PASSWORD
   });
 
-  // 🟩 SIEMPRE LEE EL ÚLTIMO POST DEL BOT
-  const feed = await agent.app.bsky.feed.getAuthorFeed({
-    actor: process.env.BSKY_USERNAME,
+  // 🟩 FEED #SNAKESKY (TU FEED NUEVO)
+  const snakeskyFeed = "did:plc:jlyxq2frdkpnkwhzldvmjlrv/feed/aaaim53uagg4q";
+
+  // 🟦 LEER EL FEED
+  const res = await agent.app.bsky.feed.getFeed({
+    feed: snakeskyFeed,
     limit: 1
   });
 
-  if (!feed.data.feed.length) {
-    console.log("No hay posts en el feed del bot.");
+  if (!res.data.feed.length) {
+    console.log("No hay posts en el feed #snakesky.");
     return;
   }
 
-  const post = feed.data.feed[0].post;
+  const item = res.data.feed[0];
+  const post = item.post;
   const text = post.record.text || "";
-  const uri = post.uri;
 
-  // 🟦 EXTRAER LA LONGITUD
-  const match = text.match(/(?:Snake\s+length|LENGTH):\s*(\d+)/i);
+  // 🟦 EXTRAER LENGTH=XX
+  const match = text.match(/LENGTH\s*=\s*(\d+)/i);
 
   if (!match) {
-    console.log("El último post no contiene longitud.");
+    console.log("El último post #snakesky no contiene LENGTH=XX.");
     return;
   }
 
   const length = parseInt(match[1], 10);
 
+  // 🟩 CONSTRUIR URL DEL POST
+  const uri = post.uri;
+  const rkey = uri.split("/").pop();
+  const postUrl = `https://bsky.app/profile/${post.author.did}/post/${rkey}`;
+
   // 🟩 GUARDAR EN JSON
   const data = {
     length,
-    player: process.env.BSKY_USERNAME,
-    post: `https://bsky.app/profile/${process.env.BSKY_USERNAME}/post/${uri.split("/").pop()}`
+    player: post.author.handle,
+    post: postUrl,
+    updatedAt: new Date().toISOString()
   };
 
   fs.writeFileSync("snakesky.json", JSON.stringify(data, null, 2));
-  console.log("snakesky.json actualizado:", data);
+  console.log("🟩 snakesky.json actualizado:", data);
 }
 
 run();
